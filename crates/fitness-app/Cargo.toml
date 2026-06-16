@@ -1,0 +1,18 @@
+[package]
+name = "fitness-app"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+dotenvy.workspace = true
+axum.workspace = true
+anyhow.workspace = true
+sea-orm.workspace = true
+fitness-core = { path = "../fitness-core" }
+fitness-entity = { path = "../fitness-entity" }
+fitness-service = { path = "../fitness-service" }
+fitness-handler = { path = "../fitness-handler" }
+fitness-bot = { path = "../fitness-bot" }

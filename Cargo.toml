@@ -1,0 +1,78 @@
+[workspace]
+members = [
+    "crates/fitness-core",
+    "crates/fitness-entity",
+    "crates/fitness-migration",
+    "crates/fitness-llm",
+    "crates/fitness-service",
+    "crates/fitness-handler",
+    "crates/fitness-bot",
+    "crates/fitness-app",
+]
+resolver = "2"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serde
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Web框架
+axum = "0.8"
+
+# HTTP 中间件
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace", "compression-gzip", "auth"] }
+
+# 数据库 ORM
+sea-orm = { version = "1", features = [
+    "sqlx-postgres",
+    "sqlx-sqlite",
+    "runtime-tokio-rustls",
+    "macros",
+    "with-uuid",
+    "with-chrono",
+    "with-rust_decimal",
+] }
+sea-orm-migration = "1"
+
+# 认证
+jsonwebtoken = "9"
+argon2 = "0.5"
+
+# 日志/追踪
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# 错误处理
+thiserror = "2"
+anyhow = "1"
+
+# 类型
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+rust_decimal = { version = "1", features = ["serde"] }
+
+# 配置
+config = "0.15"
+dotenvy = "0.15"
+
+# 参数校验
+validator = { version = "0.20", features = ["derive"] }
+
+# HTTP 客户端
+reqwest = { version = "0.12", features = ["json", "stream"] }
+
+# LLM 集成
+async-openai = "0.27"
+
+# 缓存
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+
+# 飞书 SDK
+openlark = "0.17"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
