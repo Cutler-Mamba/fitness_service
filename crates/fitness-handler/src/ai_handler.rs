@@ -43,7 +43,10 @@ async fn chat(
 ) -> Result<impl IntoResponse, AppError> {
     let _tenant = verify_tenant(&state, &headers).await?;
 
-    let reply = state.ai_service.chat(&req.message, req.profile.as_ref()).await?;
+    let reply = state
+        .ai_service
+        .chat(&req.message, req.profile.as_ref())
+        .await?;
 
     Ok(Json(json!({ "reply": reply })))
 }
@@ -67,7 +70,10 @@ async fn analyze_nutrition(
 ) -> Result<impl IntoResponse, AppError> {
     let _tenant = verify_tenant(&state, &headers).await?;
 
-    let analysis = state.ai_service.analyze_nutrition(&req.food_input, req.profile.as_ref()).await?;
+    let analysis = state
+        .ai_service
+        .analyze_nutrition(&req.food_input, req.profile.as_ref())
+        .await?;
 
     Ok(Json(serde_json::to_value(analysis).unwrap_or_default()))
 }
@@ -80,7 +86,10 @@ fn extract_wechat_user_id(headers: &HeaderMap) -> Result<String, AppError> {
         .ok_or_else(|| AppError::Unauthorized("Missing X-Wechat-User-Id header".into()))
 }
 
-async fn verify_tenant(state: &ApiState, headers: &HeaderMap) -> Result<fitness_entity::tenant::Model, AppError> {
+async fn verify_tenant(
+    state: &ApiState,
+    headers: &HeaderMap,
+) -> Result<fitness_entity::tenant::Model, AppError> {
     let wechat_user_id = extract_wechat_user_id(headers)?;
 
     let tenant = state
@@ -90,7 +99,9 @@ async fn verify_tenant(state: &ApiState, headers: &HeaderMap) -> Result<fitness_
         .ok_or_else(|| AppError::Forbidden("Tenant not found. Please contact admin.".into()))?;
 
     if tenant.status != "active" {
-        return Err(AppError::Forbidden("Tenant is not active. Please contact admin.".into()));
+        return Err(AppError::Forbidden(
+            "Tenant is not active. Please contact admin.".into(),
+        ));
     }
 
     Ok(tenant)

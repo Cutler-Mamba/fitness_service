@@ -5,16 +5,20 @@ WORKDIR /app
 COPY Cargo.toml Cargo.lock* ./
 COPY crates/ crates/
 
-RUN cargo build --release --bin fitness-app && \
-    cp target/release/fitness-app /app/fitness-app
+RUN cargo build --release --bin fitness-app --bin fitness-cli --bin fitness-migrate && \
+    cp target/release/fitness-app /app/fitness-app && \
+    cp target/release/fitness-cli /app/fitness-cli && \
+    cp target/release/fitness-migrate /app/fitness-migrate
 
 FROM debian:bookworm-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY --from=builder /app/fitness-app /app/fitness-app
+COPY --from=builder /app/fitness-cli /app/fitness-cli
+COPY --from=builder /app/fitness-migrate /app/fitness-migrate
 COPY config/ /app/config/
 
 EXPOSE 8080

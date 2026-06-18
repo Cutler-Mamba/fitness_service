@@ -12,7 +12,10 @@ impl TenantService {
         Self { db }
     }
 
-    pub async fn find_by_wechat_id(&self, wechat_user_id: &str) -> Result<Option<tenant::Model>, AppError> {
+    pub async fn find_by_wechat_id(
+        &self,
+        wechat_user_id: &str,
+    ) -> Result<Option<tenant::Model>, AppError> {
         let t = tenant::Entity::find()
             .filter(tenant::Column::WechatUserId.eq(wechat_user_id))
             .one(&self.db)
@@ -27,7 +30,11 @@ impl TenantService {
             .is_some_and(|t| t.status == "active"))
     }
 
-    pub async fn create(&self, wechat_user_id: &str, nickname: Option<&str>) -> Result<tenant::Model, AppError> {
+    pub async fn create(
+        &self,
+        wechat_user_id: &str,
+        nickname: Option<&str>,
+    ) -> Result<tenant::Model, AppError> {
         let existing = self.find_by_wechat_id(wechat_user_id).await?;
         if existing.is_some() {
             return Err(AppError::Conflict("Tenant already exists".into()));
@@ -58,7 +65,11 @@ impl TenantService {
         Ok(tenants)
     }
 
-    pub async fn set_status(&self, wechat_user_id: &str, status: &str) -> Result<tenant::Model, AppError> {
+    pub async fn set_status(
+        &self,
+        wechat_user_id: &str,
+        status: &str,
+    ) -> Result<tenant::Model, AppError> {
         let t = self
             .find_by_wechat_id(wechat_user_id)
             .await?
@@ -72,7 +83,11 @@ impl TenantService {
         Ok(result)
     }
 
-    pub async fn find_or_create(&self, wechat_user_id: &str, nickname: Option<&str>) -> Result<tenant::Model, AppError> {
+    pub async fn find_or_create(
+        &self,
+        wechat_user_id: &str,
+        nickname: Option<&str>,
+    ) -> Result<tenant::Model, AppError> {
         if let Some(t) = self.find_by_wechat_id(wechat_user_id).await? {
             return Ok(t);
         }

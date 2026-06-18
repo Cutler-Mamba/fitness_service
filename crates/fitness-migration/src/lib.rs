@@ -109,9 +109,19 @@ impl MigrationTrait for M20250101_000002CreateTenantTable {
                     .table(Tenant::Table)
                     .if_not_exists()
                     .col(ColumnDef::new(Tenant::Id).uuid().not_null().primary_key())
-                    .col(ColumnDef::new(Tenant::WechatUserId).string().not_null().unique_key())
+                    .col(
+                        ColumnDef::new(Tenant::WechatUserId)
+                            .string()
+                            .not_null()
+                            .unique_key(),
+                    )
                     .col(ColumnDef::new(Tenant::Nickname).string())
-                    .col(ColumnDef::new(Tenant::Status).string().not_null().default("disabled"))
+                    .col(
+                        ColumnDef::new(Tenant::Status)
+                            .string()
+                            .not_null()
+                            .default("disabled"),
+                    )
                     .col(ColumnDef::new(Tenant::DailyQuota).integer())
                     .col(
                         ColumnDef::new(Tenant::CreatedAt)
@@ -165,35 +175,78 @@ impl MigrationTrait for M20250101_000003CreateWorkoutPlanTable {
         manager
             .create_table(
                 sea_orm_migration::sea_query::Table::create()
-                    .table(WorkoutPlan::Table).if_not_exists()
-                    .col(ColumnDef::new(WorkoutPlan::Id).uuid().not_null().primary_key())
+                    .table(WorkoutPlan::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(WorkoutPlan::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
                     .col(ColumnDef::new(WorkoutPlan::UserId).uuid().not_null())
                     .col(ColumnDef::new(WorkoutPlan::Name).string().not_null())
                     .col(ColumnDef::new(WorkoutPlan::Goal).string().not_null())
                     .col(ColumnDef::new(WorkoutPlan::Difficulty).string())
-                    .col(ColumnDef::new(WorkoutPlan::DurationWeeks).integer().not_null())
+                    .col(
+                        ColumnDef::new(WorkoutPlan::DurationWeeks)
+                            .integer()
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(WorkoutPlan::Schedule).json())
                     .col(ColumnDef::new(WorkoutPlan::Tips).json())
-                    .col(ColumnDef::new(WorkoutPlan::Status).string().not_null().default("active"))
-                    .col(ColumnDef::new(WorkoutPlan::CreatedAt).timestamp_with_time_zone().not_null())
-                    .col(ColumnDef::new(WorkoutPlan::UpdatedAt).timestamp_with_time_zone().not_null())
+                    .col(
+                        ColumnDef::new(WorkoutPlan::Status)
+                            .string()
+                            .not_null()
+                            .default("active"),
+                    )
+                    .col(
+                        ColumnDef::new(WorkoutPlan::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(WorkoutPlan::UpdatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
                     .to_owned(),
-            ).await
+            )
+            .await
     }
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager.drop_table(sea_orm_migration::sea_query::Table::drop().table(WorkoutPlan::Table).to_owned()).await
+        manager
+            .drop_table(
+                sea_orm_migration::sea_query::Table::drop()
+                    .table(WorkoutPlan::Table)
+                    .to_owned(),
+            )
+            .await
     }
 }
 
 #[derive(DeriveIden)]
 enum WorkoutPlan {
-    Table, Id, UserId, Name, Goal, Difficulty, DurationWeeks, Schedule, Tips, Status, CreatedAt, UpdatedAt,
+    Table,
+    Id,
+    UserId,
+    Name,
+    Goal,
+    Difficulty,
+    DurationWeeks,
+    Schedule,
+    Tips,
+    Status,
+    CreatedAt,
+    UpdatedAt,
 }
 
 pub struct M20250101_000004CreateExerciseTable;
 
 impl MigrationName for M20250101_000004CreateExerciseTable {
-    fn name(&self) -> &str { "m20250101_000004_create_exercise_table" }
+    fn name(&self) -> &str {
+        "m20250101_000004_create_exercise_table"
+    }
 }
 
 #[async_trait::async_trait]
@@ -202,7 +255,8 @@ impl MigrationTrait for M20250101_000004CreateExerciseTable {
         manager
             .create_table(
                 sea_orm_migration::sea_query::Table::create()
-                    .table(Exercise::Table).if_not_exists()
+                    .table(Exercise::Table)
+                    .if_not_exists()
                     .col(ColumnDef::new(Exercise::Id).uuid().not_null().primary_key())
                     .col(ColumnDef::new(Exercise::PlanId).uuid())
                     .col(ColumnDef::new(Exercise::Name).string().not_null())
@@ -211,25 +265,52 @@ impl MigrationTrait for M20250101_000004CreateExerciseTable {
                     .col(ColumnDef::new(Exercise::RestSeconds).integer().not_null())
                     .col(ColumnDef::new(Exercise::Notes).string())
                     .col(ColumnDef::new(Exercise::OrderIndex).integer().not_null())
-                    .col(ColumnDef::new(Exercise::CreatedAt).timestamp_with_time_zone().not_null())
-                    .col(ColumnDef::new(Exercise::UpdatedAt).timestamp_with_time_zone().not_null())
+                    .col(
+                        ColumnDef::new(Exercise::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Exercise::UpdatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
                     .to_owned(),
-            ).await
+            )
+            .await
     }
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager.drop_table(sea_orm_migration::sea_query::Table::drop().table(Exercise::Table).to_owned()).await
+        manager
+            .drop_table(
+                sea_orm_migration::sea_query::Table::drop()
+                    .table(Exercise::Table)
+                    .to_owned(),
+            )
+            .await
     }
 }
 
 #[derive(DeriveIden)]
 enum Exercise {
-    Table, Id, PlanId, Name, Sets, Reps, RestSeconds, Notes, OrderIndex, CreatedAt, UpdatedAt,
+    Table,
+    Id,
+    PlanId,
+    Name,
+    Sets,
+    Reps,
+    RestSeconds,
+    Notes,
+    OrderIndex,
+    CreatedAt,
+    UpdatedAt,
 }
 
 pub struct M20250101_000005CreateWorkoutLogTable;
 
 impl MigrationName for M20250101_000005CreateWorkoutLogTable {
-    fn name(&self) -> &str { "m20250101_000005_create_workout_log_table" }
+    fn name(&self) -> &str {
+        "m20250101_000005_create_workout_log_table"
+    }
 }
 
 #[async_trait::async_trait]
@@ -238,8 +319,14 @@ impl MigrationTrait for M20250101_000005CreateWorkoutLogTable {
         manager
             .create_table(
                 sea_orm_migration::sea_query::Table::create()
-                    .table(WorkoutLog::Table).if_not_exists()
-                    .col(ColumnDef::new(WorkoutLog::Id).uuid().not_null().primary_key())
+                    .table(WorkoutLog::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(WorkoutLog::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
                     .col(ColumnDef::new(WorkoutLog::UserId).uuid().not_null())
                     .col(ColumnDef::new(WorkoutLog::PlanId).uuid())
                     .col(ColumnDef::new(WorkoutLog::ExerciseName).string().not_null())
@@ -248,26 +335,59 @@ impl MigrationTrait for M20250101_000005CreateWorkoutLogTable {
                     .col(ColumnDef::new(WorkoutLog::WeightKg).decimal())
                     .col(ColumnDef::new(WorkoutLog::DurationSeconds).integer())
                     .col(ColumnDef::new(WorkoutLog::Notes).string())
-                    .col(ColumnDef::new(WorkoutLog::LoggedAt).timestamp_with_time_zone().not_null())
-                    .col(ColumnDef::new(WorkoutLog::CreatedAt).timestamp_with_time_zone().not_null())
-                    .col(ColumnDef::new(WorkoutLog::UpdatedAt).timestamp_with_time_zone().not_null())
+                    .col(
+                        ColumnDef::new(WorkoutLog::LoggedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(WorkoutLog::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(WorkoutLog::UpdatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
                     .to_owned(),
-            ).await
+            )
+            .await
     }
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager.drop_table(sea_orm_migration::sea_query::Table::drop().table(WorkoutLog::Table).to_owned()).await
+        manager
+            .drop_table(
+                sea_orm_migration::sea_query::Table::drop()
+                    .table(WorkoutLog::Table)
+                    .to_owned(),
+            )
+            .await
     }
 }
 
 #[derive(DeriveIden)]
 enum WorkoutLog {
-    Table, Id, UserId, PlanId, ExerciseName, SetsCompleted, RepsCompleted, WeightKg, DurationSeconds, Notes, LoggedAt, CreatedAt, UpdatedAt,
+    Table,
+    Id,
+    UserId,
+    PlanId,
+    ExerciseName,
+    SetsCompleted,
+    RepsCompleted,
+    WeightKg,
+    DurationSeconds,
+    Notes,
+    LoggedAt,
+    CreatedAt,
+    UpdatedAt,
 }
 
 pub struct M20250101_000006CreateNutritionLogTable;
 
 impl MigrationName for M20250101_000006CreateNutritionLogTable {
-    fn name(&self) -> &str { "m20250101_000006_create_nutrition_log_table" }
+    fn name(&self) -> &str {
+        "m20250101_000006_create_nutrition_log_table"
+    }
 }
 
 #[async_trait::async_trait]
@@ -276,8 +396,14 @@ impl MigrationTrait for M20250101_000006CreateNutritionLogTable {
         manager
             .create_table(
                 sea_orm_migration::sea_query::Table::create()
-                    .table(NutritionLog::Table).if_not_exists()
-                    .col(ColumnDef::new(NutritionLog::Id).uuid().not_null().primary_key())
+                    .table(NutritionLog::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(NutritionLog::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
                     .col(ColumnDef::new(NutritionLog::UserId).uuid().not_null())
                     .col(ColumnDef::new(NutritionLog::MealType).string().not_null())
                     .col(ColumnDef::new(NutritionLog::FoodName).string().not_null())
@@ -288,26 +414,61 @@ impl MigrationTrait for M20250101_000006CreateNutritionLogTable {
                     .col(ColumnDef::new(NutritionLog::CarbsG).decimal())
                     .col(ColumnDef::new(NutritionLog::FatG).decimal())
                     .col(ColumnDef::new(NutritionLog::Notes).string())
-                    .col(ColumnDef::new(NutritionLog::LoggedAt).timestamp_with_time_zone().not_null())
-                    .col(ColumnDef::new(NutritionLog::CreatedAt).timestamp_with_time_zone().not_null())
-                    .col(ColumnDef::new(NutritionLog::UpdatedAt).timestamp_with_time_zone().not_null())
+                    .col(
+                        ColumnDef::new(NutritionLog::LoggedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(NutritionLog::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(NutritionLog::UpdatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
                     .to_owned(),
-            ).await
+            )
+            .await
     }
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager.drop_table(sea_orm_migration::sea_query::Table::drop().table(NutritionLog::Table).to_owned()).await
+        manager
+            .drop_table(
+                sea_orm_migration::sea_query::Table::drop()
+                    .table(NutritionLog::Table)
+                    .to_owned(),
+            )
+            .await
     }
 }
 
 #[derive(DeriveIden)]
 enum NutritionLog {
-    Table, Id, UserId, MealType, FoodName, Amount, Unit, Calories, ProteinG, CarbsG, FatG, Notes, LoggedAt, CreatedAt, UpdatedAt,
+    Table,
+    Id,
+    UserId,
+    MealType,
+    FoodName,
+    Amount,
+    Unit,
+    Calories,
+    ProteinG,
+    CarbsG,
+    FatG,
+    Notes,
+    LoggedAt,
+    CreatedAt,
+    UpdatedAt,
 }
 
 pub struct M20250101_000007CreateBodyMetricsTable;
 
 impl MigrationName for M20250101_000007CreateBodyMetricsTable {
-    fn name(&self) -> &str { "m20250101_000007_create_body_metrics_table" }
+    fn name(&self) -> &str {
+        "m20250101_000007_create_body_metrics_table"
+    }
 }
 
 #[async_trait::async_trait]
@@ -316,8 +477,14 @@ impl MigrationTrait for M20250101_000007CreateBodyMetricsTable {
         manager
             .create_table(
                 sea_orm_migration::sea_query::Table::create()
-                    .table(BodyMetrics::Table).if_not_exists()
-                    .col(ColumnDef::new(BodyMetrics::Id).uuid().not_null().primary_key())
+                    .table(BodyMetrics::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(BodyMetrics::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
                     .col(ColumnDef::new(BodyMetrics::UserId).uuid().not_null())
                     .col(ColumnDef::new(BodyMetrics::WeightKg).decimal())
                     .col(ColumnDef::new(BodyMetrics::BodyFatPct).decimal())
@@ -326,26 +493,59 @@ impl MigrationTrait for M20250101_000007CreateBodyMetricsTable {
                     .col(ColumnDef::new(BodyMetrics::HipCm).decimal())
                     .col(ColumnDef::new(BodyMetrics::ChestCm).decimal())
                     .col(ColumnDef::new(BodyMetrics::Notes).string())
-                    .col(ColumnDef::new(BodyMetrics::MeasuredAt).timestamp_with_time_zone().not_null())
-                    .col(ColumnDef::new(BodyMetrics::CreatedAt).timestamp_with_time_zone().not_null())
-                    .col(ColumnDef::new(BodyMetrics::UpdatedAt).timestamp_with_time_zone().not_null())
+                    .col(
+                        ColumnDef::new(BodyMetrics::MeasuredAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BodyMetrics::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BodyMetrics::UpdatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
                     .to_owned(),
-            ).await
+            )
+            .await
     }
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager.drop_table(sea_orm_migration::sea_query::Table::drop().table(BodyMetrics::Table).to_owned()).await
+        manager
+            .drop_table(
+                sea_orm_migration::sea_query::Table::drop()
+                    .table(BodyMetrics::Table)
+                    .to_owned(),
+            )
+            .await
     }
 }
 
 #[derive(DeriveIden)]
 enum BodyMetrics {
-    Table, Id, UserId, WeightKg, BodyFatPct, MuscleMassKg, WaistCm, HipCm, ChestCm, Notes, MeasuredAt, CreatedAt, UpdatedAt,
+    Table,
+    Id,
+    UserId,
+    WeightKg,
+    BodyFatPct,
+    MuscleMassKg,
+    WaistCm,
+    HipCm,
+    ChestCm,
+    Notes,
+    MeasuredAt,
+    CreatedAt,
+    UpdatedAt,
 }
 
 pub struct M20250101_000008CreateChatSessionTable;
 
 impl MigrationName for M20250101_000008CreateChatSessionTable {
-    fn name(&self) -> &str { "m20250101_000008_create_chat_session_table" }
+    fn name(&self) -> &str {
+        "m20250101_000008_create_chat_session_table"
+    }
 }
 
 #[async_trait::async_trait]
@@ -354,29 +554,57 @@ impl MigrationTrait for M20250101_000008CreateChatSessionTable {
         manager
             .create_table(
                 sea_orm_migration::sea_query::Table::create()
-                    .table(ChatSession::Table).if_not_exists()
-                    .col(ColumnDef::new(ChatSession::Id).uuid().not_null().primary_key())
+                    .table(ChatSession::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(ChatSession::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
                     .col(ColumnDef::new(ChatSession::UserId).uuid().not_null())
                     .col(ColumnDef::new(ChatSession::Title).string())
-                    .col(ColumnDef::new(ChatSession::CreatedAt).timestamp_with_time_zone().not_null())
-                    .col(ColumnDef::new(ChatSession::UpdatedAt).timestamp_with_time_zone().not_null())
+                    .col(
+                        ColumnDef::new(ChatSession::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ChatSession::UpdatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
                     .to_owned(),
-            ).await
+            )
+            .await
     }
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager.drop_table(sea_orm_migration::sea_query::Table::drop().table(ChatSession::Table).to_owned()).await
+        manager
+            .drop_table(
+                sea_orm_migration::sea_query::Table::drop()
+                    .table(ChatSession::Table)
+                    .to_owned(),
+            )
+            .await
     }
 }
 
 #[derive(DeriveIden)]
 enum ChatSession {
-    Table, Id, UserId, Title, CreatedAt, UpdatedAt,
+    Table,
+    Id,
+    UserId,
+    Title,
+    CreatedAt,
+    UpdatedAt,
 }
 
 pub struct M20250101_000009CreateChatMessageTable;
 
 impl MigrationName for M20250101_000009CreateChatMessageTable {
-    fn name(&self) -> &str { "m20250101_000009_create_chat_message_table" }
+    fn name(&self) -> &str {
+        "m20250101_000009_create_chat_message_table"
+    }
 }
 
 #[async_trait::async_trait]
@@ -385,22 +613,45 @@ impl MigrationTrait for M20250101_000009CreateChatMessageTable {
         manager
             .create_table(
                 sea_orm_migration::sea_query::Table::create()
-                    .table(ChatMessage::Table).if_not_exists()
-                    .col(ColumnDef::new(ChatMessage::Id).uuid().not_null().primary_key())
+                    .table(ChatMessage::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(ChatMessage::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
                     .col(ColumnDef::new(ChatMessage::SessionId).uuid().not_null())
                     .col(ColumnDef::new(ChatMessage::Role).string().not_null())
                     .col(ColumnDef::new(ChatMessage::Content).string().not_null())
                     .col(ColumnDef::new(ChatMessage::TokenCount).integer())
-                    .col(ColumnDef::new(ChatMessage::CreatedAt).timestamp_with_time_zone().not_null())
+                    .col(
+                        ColumnDef::new(ChatMessage::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
                     .to_owned(),
-            ).await
+            )
+            .await
     }
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager.drop_table(sea_orm_migration::sea_query::Table::drop().table(ChatMessage::Table).to_owned()).await
+        manager
+            .drop_table(
+                sea_orm_migration::sea_query::Table::drop()
+                    .table(ChatMessage::Table)
+                    .to_owned(),
+            )
+            .await
     }
 }
 
 #[derive(DeriveIden)]
 enum ChatMessage {
-    Table, Id, SessionId, Role, Content, TokenCount, CreatedAt,
+    Table,
+    Id,
+    SessionId,
+    Role,
+    Content,
+    TokenCount,
+    CreatedAt,
 }

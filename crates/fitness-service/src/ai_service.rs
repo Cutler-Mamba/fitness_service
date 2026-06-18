@@ -10,13 +10,20 @@ impl AiService {
         Self { llm_client }
     }
 
-    pub async fn chat(&self, message: &str, profile: Option<&FitnessProfile>) -> Result<String, AppError> {
+    pub async fn chat(
+        &self,
+        message: &str,
+        profile: Option<&FitnessProfile>,
+    ) -> Result<String, AppError> {
         let prompt = fitness_llm::prompt::chat::chat();
         let user_message = build_chat_message(message, profile);
         self.llm_client.chat(&prompt.system, &user_message).await
     }
 
-    pub async fn generate_plan(&self, profile: &FitnessProfile) -> Result<GeneratedPlanOutput, AppError> {
+    pub async fn generate_plan(
+        &self,
+        profile: &FitnessProfile,
+    ) -> Result<GeneratedPlanOutput, AppError> {
         let prompt = fitness_llm::prompt::plan_generation::plan_generation();
         let user_message = build_profile_message(profile);
 
@@ -40,7 +47,11 @@ impl AiService {
             .map_err(|e| AppError::LlmError(format!("Failed to parse plan: {}", e)))
     }
 
-    pub async fn analyze_nutrition(&self, food_input: &str, profile: Option<&FitnessProfile>) -> Result<NutritionAnalysisOutput, AppError> {
+    pub async fn analyze_nutrition(
+        &self,
+        food_input: &str,
+        profile: Option<&FitnessProfile>,
+    ) -> Result<NutritionAnalysisOutput, AppError> {
         let prompt = fitness_llm::prompt::nutrition_advice::nutrition_advice();
         let mut user_message = format!("用户饮食内容：\n{}", food_input);
         if let Some(p) = profile {

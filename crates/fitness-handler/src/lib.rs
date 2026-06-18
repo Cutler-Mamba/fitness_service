@@ -40,7 +40,13 @@ pub fn api_router(state: Arc<ApiState>) -> Router {
         .nest("/api/v1/users", user_handler::user_routes(state.clone()))
         .nest("/api/v1/ai", ai_handler::ai_routes(state.clone()))
         .nest("/api/v1/plans", stub_handler::plan_routes(state.clone()))
-        .nest("/api/v1/exercises", stub_handler::exercise_routes(state.clone()))
-        .nest("/api/v1/nutrition", stub_handler::nutrition_routes(state.clone()))
+        .nest(
+            "/api/v1/exercises",
+            stub_handler::exercise_routes(state.clone()),
+        )
+        .nest(
+            "/api/v1/nutrition",
+            stub_handler::nutrition_routes(state.clone()),
+        )
         .nest("/api/v1/metrics", stub_handler::metrics_routes(state))
 }
