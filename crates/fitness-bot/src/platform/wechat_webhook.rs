@@ -1,10 +1,14 @@
-use axum::{Json, Router, extract::State, routing::post};
-use fitness_core::{config::WechatConfig, error::AppError};
-use serde_json::{Value, json};
 use std::sync::Arc;
+
+use axum::{Json, Router, extract::State, routing::post};
+use fitness_core::{
+    config::WechatWebhookConfig,
+    error::AppError,
+};
+use serde_json::{Value, json};
 use tracing::info;
 
-pub fn wechat_router(config: Arc<WechatConfig>) -> Router {
+pub fn wechat_webhook_router(config: Arc<WechatWebhookConfig>) -> Router {
     Router::new()
         .route("/event", post(handle_event))
         .route("/challenge", post(handle_challenge))
@@ -12,11 +16,11 @@ pub fn wechat_router(config: Arc<WechatConfig>) -> Router {
 }
 
 async fn handle_challenge(
-    State(_config): State<Arc<WechatConfig>>,
+    State(_config): State<Arc<WechatWebhookConfig>>,
     Json(body): Json<Value>,
 ) -> Result<Json<Value>, AppError> {
     if let Some(challenge) = body.get("challenge").and_then(|v| v.as_str()) {
-        info!("WeChat URL challenge received");
+        info!("WeChat webhook URL challenge received");
         return Ok(Json(json!({ "challenge": challenge })));
     }
     Err(AppError::BadRequest("Invalid challenge request".into()))
@@ -30,11 +34,11 @@ struct WechatEvent {
 }
 
 async fn handle_event(
-    State(config): State<Arc<WechatConfig>>,
+    State(config): State<Arc<WechatWebhookConfig>>,
     Json(body): Json<Value>,
 ) -> Result<Json<Value>, AppError> {
     info!(
-        "WeChat event received: {}",
+        "WeChat webhook event received: {}",
         serde_json::to_string(&body).unwrap_or_default()
     );
 
@@ -53,7 +57,7 @@ async fn handle_event(
 
     if let Some(user_id) = &event.user_id {
         if let Some(text) = &event.text {
-            info!("WeChat message from {}: {}", user_id, text);
+            info!("WeChat webhook message from {}: {}", user_id, text);
         }
     }
 

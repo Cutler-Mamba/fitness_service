@@ -78,5 +78,8 @@ redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
 # 飞书 SDK
 openlark = "0.17"
 
+# Async trait
+async-trait = "0.1"
+
 [workspace.lints.rust]
 unsafe_code = "forbid"

@@ -20,15 +20,15 @@ pub struct ApiState {
 
 impl ApiState {
     pub fn new(
-        user_service: UserService,
-        tenant_service: TenantService,
-        ai_service: AiService,
+        user_service: Arc<UserService>,
+        tenant_service: Arc<TenantService>,
+        ai_service: Arc<AiService>,
         config: Arc<FitnessConfig>,
     ) -> Self {
         Self {
-            user_service: Arc::new(user_service),
-            tenant_service: Arc::new(tenant_service),
-            ai_service: Arc::new(ai_service),
+            user_service,
+            tenant_service,
+            ai_service,
             config,
         }
     }

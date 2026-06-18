@@ -1,4 +1,11 @@
 pub mod command;
-pub mod handler;
+pub mod engine;
+pub mod ilink;
+pub mod platform;
 
-pub use handler::wechat_router;
+pub use command::parse_command;
+pub use engine::BotEngine;
+pub use platform::{
+    ilink_platform::ILinkPlatform,
+    wechat_webhook::wechat_webhook_router,
+};

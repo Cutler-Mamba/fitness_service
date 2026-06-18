@@ -49,6 +49,26 @@ pub struct FeishuConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WechatConfig {
+    pub channel: WechatChannel,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum WechatChannel {
+    ILink(IlinkConfig),
+    Webhook(WechatWebhookConfig),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IlinkConfig {
+    pub ilink_url: String,
+    pub account_id: String,
+    pub token: String,
+    pub context_dir: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WechatWebhookConfig {
     pub ilink_url: String,
     pub bot_token: String,
     pub verification_token: String,
@@ -56,10 +76,60 @@ pub struct WechatConfig {
     pub webhook_path: String,
 }
 
+impl WechatConfig {
+    pub fn has_ilink_credentials(&self) -> bool {
+        matches!(&self.channel, WechatChannel::ILink(c) if !c.account_id.is_empty() && !c.token.is_empty())
+    }
+}
+
+impl Default for WechatConfig {
+    fn default() -> Self {
+        Self {
+            channel: WechatChannel::Webhook(WechatWebhookConfig::default()),
+        }
+    }
+}
+
+impl Default for WechatWebhookConfig {
+    fn default() -> Self {
+        Self {
+            ilink_url: "https://ilinkai.weixin.qq.com".to_string(),
+            bot_token: String::new(),
+            verification_token: String::new(),
+            encrypt_key: None,
+            webhook_path: "/api/v1/wechat/event".to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerConfig {
     pub host: String,
     pub port: u16,
+}
+
+fn load_wechat_channel() -> WechatChannel {
+    let channel_type = std::env::var("WECHAT_CHANNEL").unwrap_or_else(|_| "webhook".to_string());
+
+    match channel_type.as_str() {
+        "ilink" => WechatChannel::ILink(IlinkConfig {
+            ilink_url: std::env::var("WECHAT_ILINK_URL")
+                .unwrap_or_else(|_| "https://ilinkai.weixin.qq.com".to_string()),
+            account_id: std::env::var("WECHAT_ACCOUNT_ID").unwrap_or_default(),
+            token: std::env::var("WECHAT_TOKEN").unwrap_or_default(),
+            context_dir: std::env::var("WECHAT_CONTEXT_DIR")
+                .unwrap_or_else(|_| "./data/weixin/context".to_string()),
+        }),
+        _ => WechatChannel::Webhook(WechatWebhookConfig {
+            ilink_url: std::env::var("WECHAT_ILINK_URL")
+                .unwrap_or_else(|_| "https://ilinkai.weixin.qq.com".to_string()),
+            bot_token: std::env::var("WECHAT_BOT_TOKEN").unwrap_or_default(),
+            verification_token: std::env::var("WECHAT_VERIFICATION_TOKEN").unwrap_or_default(),
+            encrypt_key: std::env::var("WECHAT_ENCRYPT_KEY").ok(),
+            webhook_path: std::env::var("WECHAT_WEBHOOK_PATH")
+                .unwrap_or_else(|_| "/api/v1/wechat/event".to_string()),
+        }),
+    }
 }
 
 impl FitnessConfig {
@@ -105,13 +175,7 @@ impl FitnessConfig {
                     .unwrap_or_else(|_| "/api/v1/feishu/event".to_string()),
             },
             wechat: WechatConfig {
-                ilink_url: std::env::var("WECHAT_ILINK_URL")
-                    .unwrap_or_else(|_| "https://ilinkai.weixin.qq.com".to_string()),
-                bot_token: std::env::var("WECHAT_BOT_TOKEN").unwrap_or_default(),
-                verification_token: std::env::var("WECHAT_VERIFICATION_TOKEN").unwrap_or_default(),
-                encrypt_key: std::env::var("WECHAT_ENCRYPT_KEY").ok(),
-                webhook_path: std::env::var("WECHAT_WEBHOOK_PATH")
-                    .unwrap_or_else(|_| "/api/v1/wechat/event".to_string()),
+                channel: load_wechat_channel(),
             },
             server: ServerConfig {
                 host: std::env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),

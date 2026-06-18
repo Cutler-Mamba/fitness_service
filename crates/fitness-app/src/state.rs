@@ -9,9 +9,9 @@ pub struct AppState {
     pub config: Arc<FitnessConfig>,
     #[allow(dead_code)]
     pub db: DatabaseConnection,
-    pub user_service: UserService,
-    pub tenant_service: TenantService,
-    pub ai_service: AiService,
+    pub user_service: Arc<UserService>,
+    pub tenant_service: Arc<TenantService>,
+    pub ai_service: Arc<AiService>,
 }
 
 impl AppState {
@@ -22,12 +22,12 @@ impl AppState {
         info!("Connecting to database...");
         let db: DatabaseConnection = sea_orm::Database::connect(&config.database.url).await?;
 
-        let user_service = UserService::new(db.clone());
-        let tenant_service = TenantService::new(db.clone());
+        let user_service = Arc::new(UserService::new(db.clone()));
+        let tenant_service = Arc::new(TenantService::new(db.clone()));
 
         info!("Initializing LLM client...");
         let llm_client = LlmClient::new(&config.llm);
-        let ai_service = AiService::new(llm_client);
+        let ai_service = Arc::new(AiService::new(llm_client));
 
         Ok(Self {
             config,

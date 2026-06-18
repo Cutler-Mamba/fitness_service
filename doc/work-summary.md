@@ -13,6 +13,7 @@
 | 维度 | 决策 |
 |---|---|
 | 用户入口 | **微信个人号**（iLink Bot API，官方合规接口） |
+| 微信接入模式 | **长轮询**（HTTP Long-Polling，无需公网 IP） |
 | 租户模型 | 租户 = 微信用户，管理员 CLI 手动开通 |
 | MVP 功能 | AI 对话、训练计划生成、营养建议 |
 | 免费期限流 | 不做系统硬限制，人工管理 |
@@ -128,10 +129,19 @@ fitness_service/
 │   │       │   └── auth.rs          # JWT 提取
 │   │       └── lib.rs               # ApiState + 路由组装
 │   │
-│   ├── fitness-bot/           # 微信机器人
+│   ├── fitness-bot/           # 多通道消息机器人
 │   │   └── src/
-│   │       ├── handler.rs     # Webhook 事件处理
-│   │       ├── command.rs     # 命令解析器
+│   │       ├── engine.rs              # BotEngine: 平台无关的消息编排
+│   │       ├── command.rs             # 命令解析器
+│   │       ├── platform/
+│   │       │   ├── mod.rs             # MessagingPlatform trait
+│   │       │   ├── ilink_platform.rs   # iLink 长轮询平台实现
+│   │       │   └── wechat_webhook.rs   # 微信 Webhook 平台（保留）
+│   │       ├── ilink/
+│   │       │   ├── mod.rs
+│   │       │   ├── client.rs          # iLink HTTP 客户端 (getupdates/send)
+│   │       │   ├── types.rs           # iLink API 消息/事件类型
+│   │       │   └── session.rs         # context_token 持久化 + 游标
 │   │       └── lib.rs
 │   │
 │   ├── fitness-app/           # 主二进制入口
@@ -425,7 +435,53 @@ NutritionAnalysisOutput {
 
 ## 8. 微信机器人
 
-### 8.1 命令解析
+### 8.1 通信协议: HTTP 长轮询
+
+与 iLink Bot API 通过**长轮询（Long-Polling）**通信，无需公网 IP 或 Webhook 回调：
+
+```
+┌─────────────────────────────────────────────────┐
+│  ILinkPlatform (bot 侧)                          │
+│  ┌───────────────────────────────────────────┐  │
+│  │  poll_loop():                             │  │
+│  │    loop {                                 │  │
+│  │      GET /getupdates (超时 35s)           │  │
+│  │      for msg in resp.messages:            │  │
+│  │        BotEngine.handle(msg)              │  │
+│  │        → 租户鉴权 → 指令解析 → AI → send  │  │
+│  │    }                                      │  │
+│  └───────────────────────────────────────────┘  │
+│              ↕ HTTP (ilinkai.weixin.qq.com)     │
+└─────────────────────────────────────────────────┘
+```
+
+### 8.2 关键机制
+
+| 机制 | 实现 |
+|------|------|
+| **消息拉取** | `GET /getupdates`，35s 超时，超时后立即重试 |
+| **消息发送** | `POST /send`，Markdown 原生渲染，max 4000 字符 |
+| **上下文 Token** | 入站消息含 `context_token`，下发时必须回传，磁盘持久化 |
+| **消息去重** | `msg_id` + 5 分钟滑动窗口 `HashMap` |
+| **输入状态** | `getconfig` 获取 `typing_ticket`，处理中显示"正在输入…" |
+| **重试策略** | 瞬时错误 2s 重试 2 次 → 退避 30s → 会话过期暂停 10 分钟 |
+
+### 8.3 多通道架构
+
+```
+                    ┌──────────────┐
+                    │  BotEngine   │  ← 平台无关的指令解析 + AI 调度
+                    └──────┬───────┘
+           ┌───────────────┼───────────────┐
+           ▼               ▼               ▼
+   ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+   │ ILinkPlatform│ │ WechatWebhook│ │ FeishuWebhook│
+   │ (长轮询)      │ │ (Webhook)    │ │ (Webhook)    │
+   └──────────────┘ └──────────────┘ └──────────────┘
+   无需公网 IP      需要公网 IP       需要公网 IP
+```
+
+### 8.4 命令解析
 
 | 命令 | 说明 |
 |---|---|
@@ -436,15 +492,14 @@ NutritionAnalysisOutput {
 | `/help` | 帮助 |
 | 其他文本 | AI 自由对话 |
 
-### 8.2 鉴权流程
+### 8.5 鉴权流程
 
 ```
-微信用户发消息 → Webhook 收到事件
-  → 提取 X-Wechat-User-Id
-  → 查 tenants 表：
+BotEngine.handle_message():
+  → TenantService.find_or_create(wechat_user_id)
     ├─ 不存在 → 自动创建（status=disabled），返回"请等待管理员开通"
     ├─ 存在但 disabled → 返回"服务未开通"
-    └─ active → 正常处理
+    └─ active → 正常处理（指令解析 → AI 服务 → 发送回复）
 ```
 
 ---
@@ -536,8 +591,12 @@ fitness-cli tenant show <WECHAT_USER_ID>
 | `JWT_SECRET` | `dev-secret-change-in-production` | JWT 签名密钥 |
 | `LLM_API_KEY` | — | LLM API Key |
 | `LLM_MODEL` | `gpt-4o` | 模型名称 |
+| `WECHAT_CHANNEL` | `ilink` | 微信通道: `ilink` 或 `webhook` |
 | `WECHAT_ILINK_URL` | `https://ilinkai.weixin.qq.com` | iLink API 地址 |
-| `WECHAT_BOT_TOKEN` | — | Bot Token |
+| `WECHAT_ACCOUNT_ID` | — | iLink 账号 ID（扫码登录获取） |
+| `WECHAT_TOKEN` | — | iLink Bot Token（扫码登录获取） |
+| `WECHAT_CONTEXT_DIR` | `./data/weixin/context` | context_token 持久化目录 |
+| `WECHAT_BOT_TOKEN` | — | Webhook 模式 Bot Token |
 | `WECHAT_VERIFICATION_TOKEN` | — | Webhook 验证 Token |
 | `SERVER_PORT` | `8080` | 服务端口 |
 

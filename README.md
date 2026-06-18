@@ -1,6 +1,6 @@
 # AI 健身助手
 
-基于 Rust + LLM 的全方位 AI 健身助手后端服务。支持飞书聊天机器人、Web、macOS Desktop 等多端接入。
+基于 Rust + LLM 的全方位 AI 健身助手后端服务。通过 iLink Bot 长轮询接入微信个人号，**无需公网 IP**。同时保留 Webhook 模式支持飞书、微信对话开放平台等多端接入。
 
 ## 核心功能
 
@@ -8,7 +8,7 @@
 |------|------|------|
 | 训练计划制定 | AI 生成个性化训练计划 | P0 |
 | AI 自由对话 | 健身知识问答、交互入口 | P0 |
-| 飞书机器人 | 聊天交互、指令系统 | P0 |
+| 微信机器人 | iLink 长轮询 / 指令系统 / AI 对话 | P0 |
 | 训练记录 | 记录完成情况 | P1 |
 | 饮食营养管理 | AI 分析 + 食谱推荐 | P1 |
 | 身体数据追踪 | 指标记录与趋势 | P1 |
@@ -26,7 +26,7 @@
 | 数据库 | PostgreSQL (开发 SQLite) |
 | 缓存 | Redis |
 | LLM | async-openai (OpenAI/Claude) |
-| 飞书 SDK | openlark |
+| 微信通道 | iLink Bot API (HTTP 长轮询, 无需公网IP) |
 | 认证 | JWT + Argon2 |
 | 部署 | Docker Compose |
 
@@ -41,11 +41,14 @@ fitness_service/
 │   ├── fitness-llm/           # LLM 集成 + Prompt 模板
 │   ├── fitness-service/       # 业务逻辑层
 │   ├── fitness-handler/       # Axum API 路由 + 认证
-│   ├── fitness-bot/           # 飞书机器人 Webhook
+│   ├── fitness-bot/           # 多通道消息机器人 (iLink长轮询/Webhook)
+│   │   ├── engine.rs          # BotEngine 平台无关编排
+│   │   ├── platform/          # MessagingPlatform trait + 各平台实现
+│   │   └── ilink/             # iLink HTTP 客户端 / session / types
 │   └── fitness-app/           # 主入口
-├── config/                    # 环境配置文件
-├── script/                    # 构建/部署/迁移脚本
-├── design/                    # 设计文档
+├── config/
+├── script/
+├── design/
 ├── Dockerfile
 ├── docker-compose.yml
 └── Cargo.toml
@@ -66,10 +69,11 @@ brew install --cask docker   # macOS
 ### 2. 初始化配置
 
 ```bash
-./script/setup-env.sh
+cp .env.example .env
+# 编辑 .env，至少填写 LLM_API_KEY
+# iLink 模式: 设置 WECHAT_CHANNEL=ilink, WECHAT_ACCOUNT_ID, WECHAT_TOKEN
+# Webhook 模式: 设置 WECHAT_CHANNEL=webhook, WECHAT_BOT_TOKEN, WECHAT_VERIFICATION_TOKEN
 ```
-
-按提示填写 LLM API Key 和飞书凭据（飞书可后续配置）。
 
 ### 3. 本地开发
 
@@ -88,6 +92,8 @@ RUST_LOG=debug cargo run
 ```
 
 服务默认监听 `http://0.0.0.0:8080`，开发模式默认使用 SQLite。
+
+> **微信接入**: iLink 模式通过 HTTP 长轮询与 `ilinkai.weixin.qq.com` 通信，**无需公网 IP**，在内网 Ubuntu 服务器上即可运行。
 
 ### 4. Docker 部署
 
@@ -131,12 +137,13 @@ docker compose -f docker-compose.yml logs -f
 | GET | `/api/v1/users/me` | 获取档案 |
 | PUT | `/api/v1/users/me` | 更新档案 |
 
-### 飞书
+### AI (微信用户鉴权)
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/v1/feishu/event` | 事件回调 |
-| POST | `/api/v1/feishu/challenge` | URL 验证 |
+| POST | `/api/v1/ai/chat` | AI 对话 |
+| POST | `/api/v1/ai/plan` | 生成训练计划 |
+| POST | `/api/v1/ai/nutrition` | 营养分析 |
 
 ## 环境变量
 
@@ -149,12 +156,14 @@ docker compose -f docker-compose.yml logs -f
 | `JWT_SECRET` | JWT 密钥 | (自动生成) |
 | `LLM_API_KEY` | LLM API Key | - |
 | `LLM_MODEL` | 模型名称 | `gpt-4o` |
-| `FEISHU_APP_ID` | 飞书应用 ID | - |
-| `FEISHU_APP_SECRET` | 飞书应用密钥 | - |
+| `WECHAT_CHANNEL` | 微信通道: `ilink` 或 `webhook` | `ilink` |
+| `WECHAT_ILINK_URL` | iLink API 地址 | `https://ilinkai.weixin.qq.com` |
+| `WECHAT_ACCOUNT_ID` | iLink 账号 ID | - |
+| `WECHAT_TOKEN` | iLink Token | -` |
 
 完整配置见 `.env.example`。
 
-## 飞书指令
+## 微信指令
 
 | 指令 | 功能 |
 |------|------|
@@ -166,6 +175,7 @@ docker compose -f docker-compose.yml logs -f
 
 ## 文档
 
+- [开发工作总览](doc/work-summary.md)
 - [产品架构设计](design/product-architecture.md)
 
 ## License

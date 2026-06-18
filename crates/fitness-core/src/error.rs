@@ -35,6 +35,9 @@ pub enum AppError {
     #[error("Feishu error: {0}")]
     FeishuError(String),
 
+    #[error("WeChat error: {0}")]
+    WechatError(String),
+
     #[error("Validation error: {0}")]
     Validation(String),
 }
@@ -51,6 +54,7 @@ impl AppError {
             AppError::LlmError(_) => StatusCode::BAD_GATEWAY,
             AppError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AppError::FeishuError(_) => StatusCode::BAD_GATEWAY,
+            AppError::WechatError(_) => StatusCode::BAD_GATEWAY,
             AppError::Validation(_) => StatusCode::UNPROCESSABLE_ENTITY,
         }
     }
