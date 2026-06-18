@@ -998,6 +998,7 @@ dependencies = [
  "fitness-core",
  "fitness-entity",
  "fitness-handler",
+ "fitness-llm",
  "fitness-service",
  "sea-orm",
  "tokio",
@@ -1018,6 +1019,21 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "fitness-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "dotenvy",
+ "fitness-core",
+ "fitness-service",
+ "sea-orm",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -1107,6 +1123,7 @@ dependencies = [
  "rust_decimal",
  "sea-orm",
  "serde",
+ "serde_json",
  "thiserror 2.0.18",
  "tokio",
  "tracing",

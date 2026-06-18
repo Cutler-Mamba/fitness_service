@@ -1,5 +1,6 @@
 use fitness_core::config::FitnessConfig;
-use fitness_service::UserService;
+use fitness_llm::LlmClient;
+use fitness_service::{AiService, TenantService, UserService};
 use sea_orm::DatabaseConnection;
 use std::sync::Arc;
 use tracing::info;
@@ -9,6 +10,8 @@ pub struct AppState {
     #[allow(dead_code)]
     pub db: DatabaseConnection,
     pub user_service: UserService,
+    pub tenant_service: TenantService,
+    pub ai_service: AiService,
 }
 
 impl AppState {
@@ -20,11 +23,18 @@ impl AppState {
         let db: DatabaseConnection = sea_orm::Database::connect(&config.database.url).await?;
 
         let user_service = UserService::new(db.clone());
+        let tenant_service = TenantService::new(db.clone());
+
+        info!("Initializing LLM client...");
+        let llm_client = LlmClient::new(&config.llm);
+        let ai_service = AiService::new(llm_client);
 
         Ok(Self {
             config,
             db,
             user_service,
+            tenant_service,
+            ai_service,
         })
     }
 }

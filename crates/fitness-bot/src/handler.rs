@@ -1,10 +1,10 @@
 use axum::{Json, Router, extract::State, routing::post};
-use fitness_core::{config::FeishuConfig, error::AppError};
+use fitness_core::{config::WechatConfig, error::AppError};
 use serde_json::{Value, json};
 use std::sync::Arc;
 use tracing::info;
 
-pub fn feishu_router(config: Arc<FeishuConfig>) -> Router {
+pub fn wechat_router(config: Arc<WechatConfig>) -> Router {
     Router::new()
         .route("/event", post(handle_event))
         .route("/challenge", post(handle_challenge))
@@ -12,32 +12,29 @@ pub fn feishu_router(config: Arc<FeishuConfig>) -> Router {
 }
 
 async fn handle_challenge(
-    State(_config): State<Arc<FeishuConfig>>,
+    State(_config): State<Arc<WechatConfig>>,
     Json(body): Json<Value>,
 ) -> Result<Json<Value>, AppError> {
     if let Some(challenge) = body.get("challenge").and_then(|v| v.as_str()) {
-        info!("Feishu URL challenge received");
+        info!("WeChat URL challenge received");
         return Ok(Json(json!({ "challenge": challenge })));
     }
     Err(AppError::BadRequest("Invalid challenge request".into()))
 }
 
 #[derive(serde::Deserialize)]
-struct FeishuEvent {
-    header: Option<FeishuEventHeader>,
-}
-
-#[derive(serde::Deserialize)]
-struct FeishuEventHeader {
+struct WechatEvent {
     token: Option<String>,
+    user_id: Option<String>,
+    text: Option<String>,
 }
 
 async fn handle_event(
-    State(config): State<Arc<FeishuConfig>>,
+    State(config): State<Arc<WechatConfig>>,
     Json(body): Json<Value>,
 ) -> Result<Json<Value>, AppError> {
     info!(
-        "Feishu event received: {}",
+        "WeChat event received: {}",
         serde_json::to_string(&body).unwrap_or_default()
     );
 
@@ -45,13 +42,18 @@ async fn handle_event(
         return Ok(Json(json!({ "challenge": challenge })));
     }
 
-    if let Ok(event) = serde_json::from_value::<FeishuEvent>(body) {
-        if let Some(header) = &event.header {
-            if let Some(token) = &header.token {
-                if token != &config.verification_token {
-                    return Err(AppError::Forbidden("Invalid verification token".into()));
-                }
-            }
+    let event: WechatEvent = serde_json::from_value(body.clone())
+        .map_err(|_| AppError::BadRequest("Invalid event format".into()))?;
+
+    if let Some(token) = &event.token {
+        if token != &config.verification_token {
+            return Err(AppError::Forbidden("Invalid verification token".into()));
+        }
+    }
+
+    if let Some(user_id) = &event.user_id {
+        if let Some(text) = &event.text {
+            info!("WeChat message from {}: {}", user_id, text);
         }
     }
 

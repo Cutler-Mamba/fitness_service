@@ -16,3 +16,4 @@ fitness-entity = { path = "../fitness-entity" }
 fitness-service = { path = "../fitness-service" }
 fitness-handler = { path = "../fitness-handler" }
 fitness-bot = { path = "../fitness-bot" }
+fitness-llm = { path = "../fitness-llm" }

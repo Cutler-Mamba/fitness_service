@@ -8,6 +8,7 @@ members = [
     "crates/fitness-handler",
     "crates/fitness-bot",
     "crates/fitness-app",
+    "crates/fitness-cli",
 ]
 resolver = "2"
 
@@ -58,6 +59,9 @@ rust_decimal = { version = "1", features = ["serde"] }
 # 配置
 config = "0.15"
 dotenvy = "0.15"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
 
 # 参数校验
 validator = { version = "0.20", features = ["derive"] }

@@ -7,6 +7,7 @@ pub struct FitnessConfig {
     pub auth: AuthConfig,
     pub llm: LlmConfig,
     pub feishu: FeishuConfig,
+    pub wechat: WechatConfig,
     pub server: ServerConfig,
 }
 
@@ -41,6 +42,15 @@ pub struct LlmConfig {
 pub struct FeishuConfig {
     pub app_id: String,
     pub app_secret: String,
+    pub verification_token: String,
+    pub encrypt_key: Option<String>,
+    pub webhook_path: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WechatConfig {
+    pub ilink_url: String,
+    pub bot_token: String,
     pub verification_token: String,
     pub encrypt_key: Option<String>,
     pub webhook_path: String,
@@ -93,6 +103,15 @@ impl FitnessConfig {
                 encrypt_key: std::env::var("FEISHU_ENCRYPT_KEY").ok(),
                 webhook_path: std::env::var("FEISHU_WEBHOOK_PATH")
                     .unwrap_or_else(|_| "/api/v1/feishu/event".to_string()),
+            },
+            wechat: WechatConfig {
+                ilink_url: std::env::var("WECHAT_ILINK_URL")
+                    .unwrap_or_else(|_| "https://ilinkai.weixin.qq.com".to_string()),
+                bot_token: std::env::var("WECHAT_BOT_TOKEN").unwrap_or_default(),
+                verification_token: std::env::var("WECHAT_VERIFICATION_TOKEN").unwrap_or_default(),
+                encrypt_key: std::env::var("WECHAT_ENCRYPT_KEY").ok(),
+                webhook_path: std::env::var("WECHAT_WEBHOOK_PATH")
+                    .unwrap_or_else(|_| "/api/v1/wechat/event".to_string()),
             },
             server: ServerConfig {
                 host: std::env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),

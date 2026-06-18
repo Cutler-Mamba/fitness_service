@@ -22,15 +22,17 @@ async fn main() -> anyhow::Result<()> {
 
     let handler_state = Arc::new(fitness_handler::ApiState::new(
         app_state.user_service,
+        app_state.tenant_service,
+        app_state.ai_service,
         config.clone(),
     ));
 
     let api_router = fitness_handler::api_router(handler_state);
-    let feishu_router = fitness_bot::feishu_router(Arc::new(config.feishu.clone()));
+    let wechat_router = fitness_bot::wechat_router(Arc::new(config.wechat.clone()));
 
     let app = Router::new()
         .merge(api_router)
-        .nest("/api/v1/feishu", feishu_router);
+        .nest("/api/v1/wechat", wechat_router);
 
     let addr: SocketAddr = format!("{}:{}", config.server.host, config.server.port).parse()?;
 
