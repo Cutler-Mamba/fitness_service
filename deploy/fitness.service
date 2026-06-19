@@ -1,0 +1,48 @@
+[Unit]
+Description=AI Fitness Assistant Service
+Documentation=https://github.com/Cutler-Mamba/fitness_service
+After=network.target
+
+[Service]
+Type=simple
+User=fitness
+Group=fitness
+WorkingDirectory=/opt/fitness
+ExecStart=/opt/fitness/fitness-app
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fitness-app
+
+# Environment
+Environment=RUST_LOG=fitness_app=info
+Environment=SERVER_HOST=127.0.0.1
+Environment=SERVER_PORT=8080
+
+# Database (SQLite)
+Environment=DATABASE_URL=sqlite:./data/fitness.db?mode=rwc
+
+# LLM
+Environment=LLM_PROVIDER=openai
+Environment=LLM_API_KEY=
+Environment=LLM_API_BASE=https://api.openai.com/v1
+Environment=LLM_MODEL=gpt-4o
+Environment=LLM_MAX_TOKENS=4096
+
+# WeChat iLink Bot
+Environment=WECHAT_CHANNEL=ilink
+Environment=WECHAT_ILINK_URL=https://ilinkai.weixin.qq.com
+Environment=WECHAT_ACCOUNT_ID=
+Environment=WECHAT_TOKEN=
+Environment=WECHAT_CONTEXT_DIR=./data/weixin/context
+
+# JWT
+Environment=JWT_SECRET=
+
+# Limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

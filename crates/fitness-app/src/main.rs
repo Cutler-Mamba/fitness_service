@@ -50,13 +50,13 @@ async fn main() -> anyhow::Result<()> {
                     session,
                 ));
 
+                ilink_platform.set_engine(bot_engine);
+
                 tokio::spawn(async move {
                     if let Err(e) = ilink_platform.start().await {
                         tracing::error!("iLink platform exited with error: {}", e);
                     }
                 });
-
-                drop(bot_engine);
             } else {
                 info!(
                     "iLink channel configured but missing credentials (account_id/token), skipping"

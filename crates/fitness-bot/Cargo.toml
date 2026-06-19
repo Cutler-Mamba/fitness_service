@@ -12,6 +12,9 @@ tracing = { workspace = true }
 thiserror = { workspace = true }
 axum = { workspace = true }
 async-trait = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+base64 = "0.22"
 fitness-core = { path = "../fitness-core" }
 fitness-service = { path = "../fitness-service" }
 fitness-llm = { path = "../fitness-llm" }

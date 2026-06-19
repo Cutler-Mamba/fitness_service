@@ -17,3 +17,4 @@ uuid.workspace = true
 chrono.workspace = true
 fitness-core = { path = "../fitness-core" }
 fitness-service = { path = "../fitness-service" }
+fitness-bot = { path = "../fitness-bot" }
